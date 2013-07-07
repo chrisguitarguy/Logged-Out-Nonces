@@ -39,8 +39,3 @@
 require_once dirname(__FILE__) . '/inc/core.php';
 
 add_action('plugins_loaded', 'lononces_load');
-
-add_action('template_redirect', function () {
-    var_dump(wp_create_nonce('some_action'));
-    die;
-});
