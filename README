@@ -1,0 +1,7 @@
+Logged Out Nonces
+=================
+
+If you happen to use nonces on the front end of you WordPress site, every
+non-logged in user will get the same nonce.
+
+This plugin provides logged out users with a unique ID for their nonces.
