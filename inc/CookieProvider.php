@@ -44,6 +44,16 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
     protected $secure;
 
     /**
+     * Nonce salt that we'll use to "sign" our IDs to ensure they are actually
+     * from us.
+     *
+     * @since   0.1
+     * @access  protected
+     * @var     string
+     */
+    protected $salt;
+
+    /**
      * Container for an instance of PasswordHash
      *
      * @since   0.1
@@ -63,11 +73,12 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
      * @param   boolean $secure
      * @return  void
      */
-    public function __construct($cookie_name, $expires, $secure)
+    public function __construct($cookie_name, $expires, $secure, $salt)
     {
         $this->cookie_name = $cookie_name;
         $this->expires = $expires;
         $this->secure = $secure;
+        $this->salt = $salt;
     }
 
     /**
@@ -75,10 +86,10 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
      */
     public function init()
     {
-        list($id, $expires) = $this->cookieId();
+        list($id, $expires, $sig) = $this->cookieId();
 
         // if we already have an ID set up, don't bother
-        if ($id && $this->validExpiration($expires)) {
+        if ($id && $this->validExpiration($expires) && $this->validSignature($id, $sig)) {
             return;
         }
 
@@ -92,7 +103,7 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
      */
     public function getId()
     {
-        list($uid, $expires) = $this->cookieId();
+        list($uid, $expires, $sig) = $this->cookieId();
         return $uid;
     }
 
@@ -106,13 +117,13 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
     protected function cookieId()
     {
         if (!isset($_COOKIE[$this->cookie_name])) {
-            return array(null, null);
+            return array(null, null, null);
         }
 
         $cookie = $_COOKIE[$this->cookie_name];
 
-        if (false === strpos($cookie, '|')) {
-            return array(null, null);
+        if (2 !== substr_count($cookie, '|')) {
+            return array(null, null, null);
         }
 
         return explode('|', $cookie);
@@ -129,7 +140,7 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
     protected function setCookie($uid)
     {
         $expires = time() + $this->expires;
-        $value = $uid . '|' . $expires;
+        $value = $uid . '|' . $expires . '|' . $this->sign($uid);
 
         // make sure we put the user ID into the $_COOKIE superglobal
         $_COOKIE[$this->cookie_name] = $value;
@@ -174,7 +185,7 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
      */
     protected function validExpiration($expires)
     {
-        $diff = $expires - time();
+        $diff = intval($expires) - time();
 
         // if we've passed our day threshold return false
         if ($diff <= DAY_IN_SECONDS) {
@@ -182,5 +193,35 @@ class LONonces_CookieProvider implements LONonces_ProviderInterface
         }
 
         return true;
+    }
+
+    /**
+     * Check a signature and see if it's valid.
+     *
+     * @since   0.1
+     * @access  protected
+     * @param   string $uid
+     * @param   string $sig
+     * @return  boolean
+     */
+    protected function validSignature($uid, $sig)
+    {
+        return 0 === strcmp(
+            $sig,
+            $this->sign($uid)
+        );
+    }
+
+    /**
+     * Sign $uid with our salt.
+     *
+     * @since   0.1
+     * @access  protected
+     * @param   string $uid
+     * @return  string
+     */
+    protected function sign($uid)
+    {
+        return hash_hmac('sha1', $uid, $this->salt);
     }
 }
