@@ -1,0 +1,9 @@
+{
+    "name": "chrisguitarguy/logged-out-nonces",
+    "description": "Give logged out visitors to your WordPress site unique nonces.",
+    "version": "1.0.0",
+    "license": "MIT",
+    "autoload": {
+        "files": ["logged-out-nonces.php"]
+    }
+}
