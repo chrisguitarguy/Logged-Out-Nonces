@@ -36,6 +36,10 @@
 
 !defined('ABSPATH') && exit;
 
-require_once dirname(__FILE__) . '/inc/core.php';
+if ( !function_exists('lononces_load') ) {
 
-add_action('plugins_loaded', 'lononces_load');
+	require_once dirname(__FILE__) . '/inc/core.php';
+
+	add_action('plugins_loaded', 'lononces_load');
+
+}
