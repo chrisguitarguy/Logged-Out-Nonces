@@ -34,7 +34,7 @@
  * @license     http://opensource.org/licenses/MIT MIT
  */
 
-!defined('ABSPATH') && exit;
+!defined('ABSPATH') && return;
 
 if ( !function_exists('lononces_load') ) {
 
