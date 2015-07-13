@@ -34,9 +34,7 @@
  * @license     http://opensource.org/licenses/MIT MIT
  */
 
-!defined('ABSPATH') && return;
-
-if ( !function_exists('lononces_load') ) {
+if (defined('ABSPATH') && !function_exists('lononces_load') ) {
 
 	require_once dirname(__FILE__) . '/inc/core.php';
 
