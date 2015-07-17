@@ -25,6 +25,7 @@ function lononces_load()
     require_once $path . '/ProviderInterface.php';
     require_once $path . '/AbstractProvider.php';
     require_once $path . '/CookieProvider.php';
+    require_once $path . '/MockProvider.php';
 
     add_filter('nonce_user_logged_out', 'lononces_userid');
     add_action('init', array(lononces_provider(), 'init'));
@@ -46,12 +47,16 @@ function lononces_provider()
         return $provider;
     }
 
-    $default = $provider = new LONonces_CookieProvider(
-        apply_filters('lononces_cookie_name', '_lononce_id'),
-        apply_filters('lononces_cookie_expires', WEEK_IN_SECONDS * 4),
-        apply_filters('lononces_cookie_secure', false),
-        apply_filters('lononces_cookie_salt', defined('NONCE_SALT') ? NONCE_SALT : 'lononces_salt')
-    );
+    if(  php_sapi_name() === 'cli') {
+        $default = $provider = new LONonces_MockProvider();
+    } else {
+        $default = $provider = new LONonces_CookieProvider(
+                apply_filters('lononces_cookie_name', '_lononce_id'),
+                apply_filters('lononces_cookie_expires', WEEK_IN_SECONDS * 4),
+                apply_filters('lononces_cookie_secure', false),
+                apply_filters('lononces_cookie_salt', defined('NONCE_SALT') ? NONCE_SALT : 'lononces_salt')
+        );
+    }
 
     $provider = apply_filters('lononces_provider', $provider);
 
